@@ -13,6 +13,7 @@ import { getById } from "$repositories/KnowledgeRepository"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import { checkTokenLimit } from "$services/Tenant/TenantLimitService"
 import * as AiPromptService from "$services/AiPromptService"
+import { KnowledgeStatus } from "../../../generated/prisma/client"
 
 const google = createGoogleGenerativeAI({
 	apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || "",
@@ -157,6 +158,8 @@ export async function executeHybridChatCore({
 					try {
 						const fullKnowledge = await getById(knowledgeId)
 						if (!fullKnowledge) continue
+
+						if (fullKnowledge.status !== KnowledgeStatus.APPROVED) continue
 
 						let contextPart = `[${fullKnowledge.headline}] (Relevance Score: ${
 							score?.toFixed(3) || "N/A"
