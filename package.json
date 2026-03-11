@@ -20,7 +20,8 @@
 		"codegen:validation": "bun run codegen/index.ts --generate=validation",
 		"codegen:entity": "bun run codegen/index.ts --generate=entity",
 		"prepare": "husky",
-		"format": "biome format --write"
+		"format": "biome format --write",
+		"script:reindex": "bun run scripts/reindex-missing-knowledge.ts"
 	},
 	"author": "NodeWave",
 	"license": "MIT",
