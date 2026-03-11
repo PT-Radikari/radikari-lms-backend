@@ -86,7 +86,7 @@ async function runReindex() {
 		const approvedKnowledge = await prisma.knowledge.findMany({
 			where: {
 				status: KnowledgeStatus.APPROVED,
-                isArchived: false,
+				isArchived: false,
 			},
 			include: {
 				knowledgeAttachment: true,
@@ -99,7 +99,9 @@ async function runReindex() {
 			},
 		})
 
-		console.log(`Found ${approvedKnowledge.length} APPROVED non-archived knowledge articles in Postgres.`)
+		console.log(
+			`Found ${approvedKnowledge.length} APPROVED non-archived knowledge articles in Postgres.`,
+		)
 
 		console.log("Fetching all indexed knowledge from Qdrant...")
 		const existingQdrantIds = new Set<string>()
@@ -123,16 +125,22 @@ async function runReindex() {
 			offset = scrollResponse.next_page_offset as string | null
 		} while (offset !== null)
 
-		console.log(`Found ${existingQdrantIds.size} unique knowledge articles in Qdrant.`)
+		console.log(
+			`Found ${existingQdrantIds.size} unique knowledge articles in Qdrant.`,
+		)
 
 		const missingKnowledge = approvedKnowledge.filter(
 			(k) => !existingQdrantIds.has(k.id),
 		)
 
-		console.log(`Identified ${missingKnowledge.length} missing knowledge articles that need indexing.`)
+		console.log(
+			`Identified ${missingKnowledge.length} missing knowledge articles that need indexing.`,
+		)
 
 		if (missingKnowledge.length === 0) {
-			console.log("✅ All APPROVED knowledge articles are already indexed in Qdrant. Nothing to do.")
+			console.log(
+				"✅ All APPROVED knowledge articles are already indexed in Qdrant. Nothing to do.",
+			)
 			return
 		}
 
@@ -141,28 +149,33 @@ async function runReindex() {
 		await pubsub.connect()
 		console.log("✅ Custom RabbitMQ Connection Ready")
 
-		console.log("📤 Pushing missing knowledge articles to KNOWLEDGE_CREATE queue...")
+		console.log(
+			"📤 Pushing missing knowledge articles to KNOWLEDGE_CREATE queue...",
+		)
 		let publishedCount = 0
 
 		for (const knowledge of missingKnowledge) {
-            // @ts-ignore
+			// @ts-ignore
 			const payload = generateKnowledgeQueueDTO(knowledge)
-			
-			console.log(`Publishing indexing task for ID: ${knowledge.id} - ${knowledge.headline}`)
+
+			console.log(
+				`Publishing indexing task for ID: ${knowledge.id} - ${knowledge.headline}`,
+			)
 			await pubsub.sendToQueue(PUBSUB_TOPICS.KNOWLEDGE_CREATE, payload)
 			publishedCount++
-            
-            // tiny sleep to not flood connection
-            await new Promise(r => setTimeout(r, 50))
+
+			// tiny sleep to not flood connection
+			await new Promise((r) => setTimeout(r, 50))
 		}
 
-		console.log(`✅ Successfully published ${publishedCount} tasks to RabbitMQ.`)
+		console.log(
+			`✅ Successfully published ${publishedCount} tasks to RabbitMQ.`,
+		)
 
 		// Allow queue some time to properly empty buffer before disconnecting
-		await new Promise(r => setTimeout(r, 2000))
-        await pubsub.disconnect()
-        console.log("👋 Disconnected RabbitMQ")
-
+		await new Promise((r) => setTimeout(r, 2000))
+		await pubsub.disconnect()
+		console.log("👋 Disconnected RabbitMQ")
 	} catch (error) {
 		console.error("❌ Fatal error in reindex script:", error)
 		throw error
