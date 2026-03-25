@@ -26,8 +26,8 @@ async function seed() {
 			await seedGlobalRoles(prisma) // Then create roles for that tenant
 			await seedTrainerAndQA(prisma)
 			await seedAccessControlList(prisma)
-			await seedMasterKnowledgeCategorySubCategoryAndCase(prisma)
 			await seedKnowledge(prisma)
+			await seedMasterKnowledgeCategorySubCategoryAndCase(prisma)
 			await seedAssignment(prisma)
 			await seedAnnouncement(prisma)
 			await seedForum(prisma)

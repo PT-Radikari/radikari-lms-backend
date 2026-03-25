@@ -35,7 +35,7 @@ export async function seedTrainerAndQA(prisma: PrismaClient) {
 		}
 
 		// Create/Update trainer user
-		const trainerEmail = `trainer2_${tenant.id.toLowerCase()}@test.com` // Unique per tenant for testing
+		const trainerEmail = `trainer@test.com` // Static email for testing
 		const hashedPasswordTrainer = await Bun.password.hash(
 			"trainer1234",
 			"argon2id",
@@ -74,7 +74,7 @@ export async function seedTrainerAndQA(prisma: PrismaClient) {
 		})
 
 		// Create/Update QA user
-		const qaEmail = `qa2_${tenant.id.toLowerCase()}@test.com` // Unique per tenant for testing
+		const qaEmail = `qa@test.com` // Static email for testing
 		const hashedPasswordQA = await Bun.password.hash("qa1234", "argon2id")
 
 		const qaUser = await prisma.user.upsert({

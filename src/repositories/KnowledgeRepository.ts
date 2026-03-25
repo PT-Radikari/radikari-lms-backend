@@ -321,7 +321,18 @@ export async function getSummary(
 	filters: EzFilter.FilteringQuery,
 ) {
 	const queryBuilder = new EzFilter.BuildQueryFilter()
-	const { filters: rawFilters, ...rest } = filters
+	let { filters: rawFilters, ...rest } = filters
+
+	// Parse filters if it's a string
+	if (typeof rawFilters === "string") {
+		try {
+			rawFilters = JSON.parse(rawFilters)
+		} catch (e) {
+			console.error("Failed to parse filters:", e)
+			rawFilters = {}
+		}
+	}
+
 	const usedFilters = queryBuilder.build(rest as any)
 	// usedFilters = await TenantRoleHelpers.buildFilterTenantRole(usedFilters, user, tenantId)
 
@@ -658,13 +669,15 @@ export async function createAttachments(
 	knowledgeId: string,
 	attachments: KnowledgeAttachmentDTO[],
 ) {
-	await tx.knowledgeAttachment.createMany({
-		data: attachments.map((attachment) => ({
-			id: ulid(),
-			knowledgeId: knowledgeId,
-			attachmentUrl: attachment.attachmentUrl,
-		})),
-	})
+	if (attachments && attachments.length > 0) {
+		await tx.knowledgeAttachment.createMany({
+			data: attachments.map((attachment) => ({
+				id: ulid(),
+				knowledgeId: knowledgeId,
+				attachmentUrl: attachment.attachmentUrl,
+			})),
+		})
+	}
 }
 
 export async function createContent(
@@ -689,7 +702,7 @@ export async function createContent(
 		})
 
 		// Create content attachments if exists
-		if (content.attachments.length > 0) {
+		if (content.attachments && content.attachments.length > 0) {
 			knowledgeContentAttachmentCreateManyInput.push(
 				...content.attachments.map((attachment) => ({
 					id: ulid(),

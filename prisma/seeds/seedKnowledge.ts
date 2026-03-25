@@ -40,7 +40,7 @@ export async function seedKnowledge(prisma: PrismaClient) {
 		const knowledgeData = [
 			{
 				id: ulid(),
-				tenantId: null,
+				tenantId: tenant.id,
 				category: "Category 1",
 				subCategory: "Sub Category 1",
 				case: "Case 1",
