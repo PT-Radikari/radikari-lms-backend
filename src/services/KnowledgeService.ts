@@ -44,9 +44,17 @@ export async function create(
 ): Promise<ServiceResponse<Knowledge | {}>> {
 	try {
 		if (data.parentId) {
-			const parent = await KnowledgeRepository.getById(data.parentId)
+			const versions = await KnowledgeRepository.getAllVersionsById(
+				data.parentId,
+			)
 
-			data.version = parent!.version + 1
+			if (versions && versions.length > 0) {
+				const highestVersion = versions[versions.length - 1].version
+				data.version = highestVersion + 1
+			} else {
+				const parent = await KnowledgeRepository.getById(data.parentId)
+				data.version = parent!.version + 1
+			}
 		}
 
 		const createdData = await KnowledgeRepository.create(userId, tenantId, data)
