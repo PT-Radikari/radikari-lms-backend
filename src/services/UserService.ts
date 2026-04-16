@@ -73,6 +73,22 @@ export async function getAll(
 	}
 }
 
+export async function getInvitableForTenant(
+	tenantId: string,
+	filters: EzFilter.FilteringQuery,
+): Promise<ServiceResponse<EzFilter.PaginatedResult<User[]> | {}>> {
+	try {
+		const data = await UserRepository.getInvitableForTenant(tenantId, filters)
+		return { status: true, data }
+	} catch (err) {
+		Logger.error(`UserService.getInvitableForTenant`, { error: err })
+		return HandleServiceResponseCustomError(
+			"Internal Server Error",
+			ResponseStatus.INTERNAL_SERVER_ERROR,
+		)
+	}
+}
+
 export async function getById(id: string): Promise<ServiceResponse<User | {}>> {
 	try {
 		const user = await UserRepository.getById(id)

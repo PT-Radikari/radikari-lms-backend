@@ -127,6 +127,72 @@ export async function getAll(filters: EzFilter.FilteringQuery) {
 	}
 }
 
+export async function getInvitableForTenant(
+	tenantId: string,
+	filters: EzFilter.FilteringQuery,
+) {
+	const queryBuilder = new EzFilter.BuildQueryFilter()
+	const { filters: rawFilters, ...rest } = filters
+	const usedFilters = queryBuilder.build(rest as any)
+
+	const where: any = {
+		...usedFilters.query.where,
+		tenantUser: { none: { tenantId } },
+	}
+
+	if (rawFilters) {
+		let parsedFilters: Array<{ key: string; value: any }> = []
+		if (typeof rawFilters === "string") {
+			try {
+				parsedFilters = JSON.parse(rawFilters)
+			} catch (e) {
+				/* ignore */
+			}
+		} else if (Array.isArray(rawFilters)) {
+			parsedFilters = rawFilters
+		}
+
+		for (const filter of Object.values(parsedFilters)) {
+			const { key, value } = filter as any
+			if (!key) continue
+
+			if (key === "isActive") {
+				where.isActive = String(value) === "true" || value === true
+			} else if (key === "email") {
+				where.email = { contains: value, mode: "insensitive" }
+			} else if (key === "fullName") {
+				where.fullName = { contains: value, mode: "insensitive" }
+			}
+		}
+	}
+
+	const [users, totalData] = await Promise.all([
+		prisma.user.findMany({
+			...usedFilters.query,
+			where,
+			include: {
+				tenantUser: {
+					include: {
+						tenant: true,
+						tenantRole: true,
+					},
+				},
+			},
+		} as any),
+		prisma.user.count({ where }),
+	])
+
+	let totalPage = 1
+	if (totalData > usedFilters.query.take)
+		totalPage = Math.ceil(totalData / usedFilters.query.take)
+
+	return {
+		entries: users.map((u) => exclude(u, "password")),
+		totalData,
+		totalPage,
+	}
+}
+
 export async function getByEmail(email: string) {
 	return await prisma.user.findUnique({
 		where: { email },
