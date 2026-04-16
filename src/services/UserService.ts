@@ -56,7 +56,12 @@ export async function getAll(
 					}
 				}
 
-				newFilters.push({ key: "_scopedTenantId", value: tenantId })
+				const hasExplicitTenantId = newFilters.some(
+					(f: any) => f.key === "tenantId",
+				)
+				if (!hasExplicitTenantId) {
+					newFilters.push({ key: "_scopedTenantId", value: tenantId })
+				}
 				filters.filters = newFilters
 			}
 		}
