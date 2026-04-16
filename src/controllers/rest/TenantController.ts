@@ -1,5 +1,6 @@
 import { Context, TypedResponse } from "hono"
 import * as TenantService from "$services/TenantService"
+import * as UserService from "$services/UserService"
 import {
 	handleServiceErrorWithResponse,
 	response_created,
@@ -103,6 +104,28 @@ export async function deleteById(c: Context): Promise<TypedResponse> {
 		c,
 		serviceResponse.data,
 		"Successfully deleted Tenant!",
+	)
+}
+
+export async function getInvitableUsers(c: Context): Promise<TypedResponse> {
+	const tenantId = c.req.param("id")
+	const filters: EzFilter.FilteringQuery = EzFilter.extractQueryFromParams(
+		c.req.query(),
+	)
+
+	const serviceResponse = await UserService.getInvitableForTenant(
+		tenantId,
+		filters,
+	)
+
+	if (!serviceResponse.status) {
+		return handleServiceErrorWithResponse(c, serviceResponse)
+	}
+
+	return response_success(
+		c,
+		serviceResponse.data,
+		"Successfully fetched invitable users for tenant!",
 	)
 }
 

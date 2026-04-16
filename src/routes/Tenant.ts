@@ -73,6 +73,13 @@ TenantRoutes.put(
 )
 
 TenantRoutes.get(
+	"/:id/invitable-users",
+	AuthMiddleware.checkJwt,
+	AuthMiddleware.checkAccessTenantRole("USER_MANAGEMENT", "CREATE"),
+	TenantController.getInvitableUsers,
+)
+
+TenantRoutes.get(
 	"/:id/users",
 	AuthMiddleware.checkJwt,
 	TenantController.getUserInTenant,
